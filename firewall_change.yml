@@ -1,23 +1,90 @@
 ---
-- name: Firewall Rule Change
-  hosts: web
+- name: Firewall Rule Change with ServiceNow Integration
+  hosts: all
   become: yes
 
+  vars:
+    change_id: "CHG0030002"   # ✅ YOUR CR number
+
+  vars_files:
+    - vars.yml
+
   tasks:
+
+    # ✅ 1. Install firewall
     - name: Install firewalld
       yum:
         name: firewalld
         state: present
 
+    # ✅ 2. Start firewall
     - name: Start firewalld
       service:
         name: firewalld
         state: started
         enabled: yes
 
+    # ✅ 3. Open port
     - name: Open port 8080
       firewalld:
         port: 8080/tcp
         permanent: yes
         state: enabled
         immediate: yes
+
+    # ✅ 4. Show CR ID
+    - name: Show Change ID
+      debug:
+        msg: "Executing Change Request: {{ change_id }}"
+
+    # ✅ 5. Update Work Notes
+    - name: Update ServiceNow Work Notes
+      uri:
+        url: "{{ servicenow_url }}/api/now/table/change_request/{{ sys_id }}"
+        method: PATCH
+        user: "{{ username }}"
+        password: "{{ password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          work_notes: |
+            Firewall rule executed using Ansible.
+            Port 8080 opened on target server.
+            Change Request: {{ change_id }}
+            Status: SUCCESS
+
+    # ✅ 6. Move Implement → Review
+    - name: Move Change to Review
+      uri:
+        url: "{{ servicenow_url }}/api/now/table/change_request/{{ sys_id }}"
+        method: PATCH
+        user: "{{ username }}"
+        password: "{{ password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          state: 4
+          work_notes: "Moved to Review after successful implementation ({{ change_id }})"
+
+    # ✅ 7. Move Review → Closed + Close Notes
+    - name: Close Change Request
+      uri:
+        url: "{{ servicenow_url }}/api/now/table/change_request/{{ sys_id }}"
+        method: PATCH
+        user: "{{ username }}"
+        password: "{{ password }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          state: 7
+          close_code: "successful"
+          close_notes: |
+            Firewall rule successfully created.
+            Port 8080 opened on target server.
+            Change Request {{ change_id }} completed automatically using Ansible.
