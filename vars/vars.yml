@@ -1,5 +1,6 @@
 servicenow_url: "https://nowlearning-nlinst04306118-7qtfh-0001.lab.service-now.com"
 username: "admin"
-password: "3mwSu1B4Wutw"   # ✅ CORRECT PASSWORD
+password: "3mwSu1B4Wutw"
+
 sys_id: "70b99760e56503107f44c11fd9d05c61"
-change_id: "CHG0030002"
+change_id: "CHG0030006"

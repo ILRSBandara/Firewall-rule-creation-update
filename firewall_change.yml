@@ -1,10 +1,11 @@
 ---
 - name: Firewall Rule Change with ServiceNow Integration
-  hosts: all
+  hosts: 172.31.46.230
   become: yes
 
   vars:
-    change_id: "CHG0030002"   # ✅ YOUR CR number
+    ansible_user: ec2-user 
+    change_id: "CHG0030006"   # ✅ YOUR CR number
 
   vars_files:
     - vars.yml
